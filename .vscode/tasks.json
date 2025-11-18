@@ -1,0 +1,16 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "start-http-server",
+      "type": "shell",
+      "command": "powershell -NoProfile -Command \"Start-Process -FilePath 'npx' -ArgumentList 'http-server','-p','5500' -WindowStyle Hidden\"",
+      "presentation": {
+        "reveal": "never",
+        "focus": false,
+        "panel": "dedicated"
+      },
+      "problemMatcher": []
+    }
+  ]
+}
