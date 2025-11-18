@@ -41,7 +41,7 @@ jobs:
             cp -f index.html public/ || true
             cp -f script.js public/ || true
             cp -f styles.css public/ || true
-            # Copy other visible files and directories except .github and .vscode
+            # Copy other visible files and directories except dev/meta folders
             for f in $(ls -A); do
               case "$f" in
                 .github|.vscode|node_modules|public) ;;
@@ -49,6 +49,13 @@ jobs:
                 *) cp -r "$f" public/ || true ;;
               esac
             done
+            # Ensure dev/config files are not included
+            rm -rf public/.github || true
+            rm -rf public/.vscode || true
+            rm -rf public/node_modules || true
+            # Remove common dotfiles that shouldn't be published
+            rm -f public/.gitignore || true
+            rm -f public/.gitattributes || true
             echo "PUBLISH_DIR=public" >> $GITHUB_ENV
           fi
 
