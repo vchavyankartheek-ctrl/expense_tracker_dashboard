@@ -1,0 +1,62 @@
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node (optional)
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Install & build (if package.json exists)
+        run: |
+          if [ -f package.json ]; then
+            npm ci
+            npm run build --if-present
+          else
+            echo "No package.json, skipping npm build"
+          fi
+
+      - name: Prepare publish directory
+        run: |
+          # Prefer common build output directories if they exist
+          if [ -d "./dist" ]; then
+            echo "PUBLISH_DIR=dist" >> $GITHUB_ENV
+          elif [ -d "./build" ]; then
+            echo "PUBLISH_DIR=build" >> $GITHUB_ENV
+          else
+            mkdir -p public
+            # Copy main static files; skip dotfolders
+            cp -f index.html public/ || true
+            cp -f script.js public/ || true
+            cp -f styles.css public/ || true
+            # Copy other visible files and directories except .github and .vscode
+            for f in $(ls -A); do
+              case "$f" in
+                .github|.vscode|node_modules|public) ;;
+                index.html|script.js|styles.css) ;;
+                *) cp -r "$f" public/ || true ;;
+              esac
+            done
+            echo "PUBLISH_DIR=public" >> $GITHUB_ENV
+          fi
+
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ${{ env.PUBLISH_DIR }}
+          publish_branch: gh-pages
+          user_name: github-actions[bot]
+          user_email: github-actions[bot]@users.noreply.github.com
